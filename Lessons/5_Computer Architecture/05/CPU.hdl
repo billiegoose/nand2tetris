@@ -1,0 +1,96 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/05/CPU.hdl
+
+/**
+ * The Central Processing unit (CPU).
+ * Consists of an ALU and a set of registers, designed to fetch and 
+ * execute instructions written in the Hack machine language.
+ * In particular, functions as follows:
+ * Executes the inputted instruction according to the Hack machine 
+ * language specification. The D and A in the language specification
+ * refer to CPU-resident registers, while M refers to the external
+ * memory location addressed by A, i.e. to Memory[A]. The inM input 
+ * holds the value of this location. If the current instruction needs 
+ * to write a value to M, the value is placed in outM, the address 
+ * of the target location is placed in the addressM output, and the 
+ * writeM control bit is asserted. (When writeM=0, any value may 
+ * appear in outM). The outM and writeM outputs are combinational: 
+ * they are affected instantaneously by the execution of the current 
+ * instruction. The addressM and pc outputs are clocked: although they 
+ * are affected by the execution of the current instruction, they commit 
+ * to their new values only in the next time unit. If reset=1 then the 
+ * CPU jumps to address 0 (i.e. sets pc=0 in next time unit) rather 
+ * than to the address resulting from executing the current instruction. 
+ */
+
+CHIP CPU {
+
+    IN  inM[16],         // M value input  (M = contents of RAM[A])
+        instruction[16], // Instruction for execution
+        reset;           // Signals whether to re-start the current
+                         // program (reset=1) or continue executing
+                         // the current program (reset=0).
+
+    OUT outM[16],        // M value output
+        writeM,          // Write into M? 
+        addressM[15],    // Address in data memory (of M)
+        pc[15];          // address of next instruction
+
+    PARTS:
+    // Put your code here:
+    // Parse for Instructions: 
+    // instruction[15] : type // 0 = A-instruction, 1 = C-instruction
+    // instruction[12] :    a // a = 0 use A, a = 1 use M
+    // instruction[11..6] : comp[6] // Command to send to ALU
+    // instruction[5..3]  : dest[3] // Destination to store ALU result   3=M, 4=D, 5=A
+    // instruction[2..0]  : jump[3] // Jump condition  0=greater, 1=equal, 2=less
+
+    // Selectors for A-instruction of C-instruction
+    DMux(in=true, sel=instruction[15], a=Ains, b=Cins);
+
+    // Handle A-register
+    Mux16(a=instruction, b=alu, sel=Cins, out=setA);
+    Or(a=Ains, b=instruction[5], out=loadA);
+    ARegister(in=setA, load=loadA, out=Aval, out[0..14]=addressM);
+
+    // Handle D-register
+    And(a=Cins, b=instruction[4], out=loadD);
+    DRegister(in=alu, load=loadD, out=Dval);
+
+    // Handle virtual M-register
+    And(a=Cins, b=instruction[3], out=loadM, out=writeM);
+    Mux16(a=false, b=alu, sel=loadM, out=outM);
+
+    // Select either M and A value
+    Mux16(a=Aval, b=inM, sel=instruction[12], out=AorM);
+
+    // Perform computation
+    ALU(x=Dval,            // D register
+        y=AorM,            // A or M register
+        zx=instruction[11], // zero the x input?
+        nx=instruction[10], // negate the x input?
+        zy=instruction[9], // zero the y input?
+        ny=instruction[8], // negate the y input?
+        f=instruction[7],  // compute  out = x + y (if 1) or out = x & y (if 0)
+        no=instruction[6], // negate the out output?
+
+        out=alu,            // 16-bit output
+        zr=zr,              // =0 bit
+        ng=ng);             // <0 bit
+
+    // Jump for any of the following reasons
+    And(a=instruction[2], b=ng, out=jL);
+    And(a=instruction[1], b=zr, out=jE);
+    // pos iff !ng && !zr
+    Or(a=ng, b=zr, out=nor);
+    Not(in=nor, out=pos);
+    And(a=instruction[0], b=pos, out=jG);
+    Or(a=jL, b=jE, out=jLE);
+    Or(a=jLE, b=jG, out=jLEG);
+    And(a=Cins, b=jLEG, out=jump);
+    Not(in=jump, out=next);
+    // Position the program counter!
+    PC(in=Aval, load=jump, inc=next, reset=reset, out[0..14]=pc);
+}

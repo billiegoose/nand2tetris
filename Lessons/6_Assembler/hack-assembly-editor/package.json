@@ -1,0 +1,11 @@
+{
+  "name": "hack-assembly-editor",
+  "version": "0.0.0",
+  "description": "An unofficial editor for the Hack assembly language used in \"From NAND to Tetris\" (nand2tetris.org). This is my code project corresponding to Chapter 6.",
+  "main": "bin/http-server",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "William Hilton",
+  "license": "MIT"
+}

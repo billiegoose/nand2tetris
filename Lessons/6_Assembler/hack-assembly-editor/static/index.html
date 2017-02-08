@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Hack Assembly Editor</title>
+<!--STYLES-->
+<link rel="stylesheet" type="text/css" href="./index.css">
+</head>
+<body>
+<!--CONTENT-->
+<div class="page_title">Hack Assembly Editor</div>
+
+<div id="editors" class="editors">
+<div id="asm_editor" class="asm_editor">// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/06/max/Max.asm
+
+// Computes M[2] = max(M[0], M[1])  where M stands for RAM
+
+   @0
+   D=M              // D = first number
+   @1
+   D=D-M            // D = first number - second number
+   @OUTPUT_FIRST
+   D;JGT            // if D>0 (first is greater) goto output_first
+   @1
+   D=M              // D = second number
+   @OUTPUT_D
+   0;JMP            // goto output_d
+(OUTPUT_FIRST)
+   @0             
+   D=M              // D = first number
+(OUTPUT_D)
+   @2
+   M=D              // M[2] = D (greatest number)
+(INFINITE_LOOP)
+   @INFINITE_LOOP
+   0;JMP            // infinite loop</div>
+<div id="hack_editor" class="hack_editor"><!-- 
+
+
+
+
+
+
+0000000000000000
+1111110000010000
+0000000000000001
+1111010011010000
+0000000000001010
+1110001100000001
+0000000000000001
+1111110000010000
+0000000000001100
+1110101010000111
+
+0000000000000000
+1111110000010000
+
+0000000000000010
+1110001100001000
+
+0000000000001110
+1110101010000111
+
+
+
+
+
+
+
+
+
+
+ --></div>
+<div>
+<table id="symboltable" class="symboltable" />
+</table>
+</div>
+
+</div>
+<!--SCRIPTS-->
+<!-- I really look forward to the day when all of these work well as modules -->
+<script src="./lib/ace-builds/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+<script src="./lib/jquery.js" type="text/javascript" charset="utf-8"></script>
+<script src="./lib/underscore.js" type="text/javascript" charset="utf-8"></script>
+<script src="./lib/backbone.js" type="text/javascript" charset="utf-8"></script>
+<script src="./lib/coffee-script.js" type="text/javascript" charset="utf-8"></script>
+
+<script src="./mode-asm.js" type="text/javascript" charset="utf-8"></script>
+<script src="./mode-hack.js" type="text/javascript" charset="utf-8"></script>
+<script src="./index.coffee" type="text/coffeescript" charset="utf-8"></script>
+</body>
+</html>
